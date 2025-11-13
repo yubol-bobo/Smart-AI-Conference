@@ -53,6 +53,8 @@ outputs/*.png
 outputs/*.pdf
 outputs/*.json
 outputs/*.csv
+outputs/iclr_2024/
+outputs/iclr_2025/
 !outputs/.gitkeep
 !outputs/README.md
 

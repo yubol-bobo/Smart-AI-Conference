@@ -77,8 +77,8 @@ def extract_reviews_from_submission(submission):
             rating_val = content['rating']
             if isinstance(rating_val, dict):
                 rating_val = rating_val.get('value')
-            if rating_val:
-                ratings.append(rating_val)
+                if rating_val is not None:
+                    ratings.append(rating_val)
             
             # Extract confidence value
             conf_val = content['confidence']
@@ -95,8 +95,8 @@ def extract_reviews_from_submission(submission):
                     val = content[field]
                     if isinstance(val, dict):
                         val = val.get('value')
-                    if val:
-                        target_list.append(val)
+                        if val is not None:
+                            target_list.append(val)
     
     return {
         'ratings': ratings,
