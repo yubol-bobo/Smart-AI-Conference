@@ -3,20 +3,41 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A comprehensive toolkit for analyzing AI/ML conference submissions using OpenReview data. Extract, analyze, and visualize submission ratings, reviewer confidence, and research area distributions for any OpenReview-hosted conference.
+A comprehensive toolkit for analyzing AI/ML conference submissions using OpenReview data. Extract, analyze, and visualize submission ratings, reviewer confidence, **acceptance decisions**, and research area distributions for any OpenReview-hosted conference.
 
 ## 🎯 Features
 
+- **Universal scraper** for any ICLR conference year (past and current)
+- **Decision extraction** for past conferences (Oral/Spotlight/Poster/Reject/Withdrawn)
 - **Automated data collection** from OpenReview API with intelligent rate limiting
 - **Fast extraction** of ratings and metadata (~55,000 submissions/second)
-- **Visualizations** with customizable color schemes
-- **Comprehensive analysis** across multiple research areas
+- **Publication-quality visualizations** with customizable color schemes
+- **Comprehensive analysis** including acceptance rates and rating thresholds
 - **Incremental saves** with checkpoint support for robustness
-- **Flexible and reusable** for any OpenReview conference (ICLR, NeurIPS, ICML, etc.)
+- **Multi-year comparison** support for trend analysis
 
-## 📊 Completed Analysis: ICLR 2026
+## 📊 Completed Analyses
 
-Successfully analyzed **19,631 submissions** with **74,432 reviews** from ICLR 2026.
+### ICLR 2026 (Current Conference - In Progress)
+Successfully analyzed **19,631 submissions** with **74,432 reviews**.
+
+**📁 Visualizations**: [`outputs/iclr_2026/`](./outputs/iclr_2026/) - 26 plots
+
+**Key Statistics:**
+- **Average rating**: 4.26 / 10 (median: 4.0)
+- **Review coverage**: 99.1% of submissions (19,450 papers)
+- **Average reviews per paper**: 3.79
+- **Reviewer confidence**: 3.62 / 5 (moderate-high)
+- **Decisions**: Not yet posted (conference in progress)
+
+### ICLR 2025 (Past Conference - With Decisions)
+Analysis in progress - extracting acceptance decisions (Oral/Spotlight/Poster).
+
+**Expected results:**
+- ~10,000-14,000 total submissions
+- ~25-30% acceptance rate
+- Decision breakdown by research area
+- Rating thresholds for acceptance
 
 ### 🎨 View Visualizations
 
@@ -103,27 +124,35 @@ pip install -r requirements.txt
 
 ### Basic Usage
 
+**Complete Workflow:**
+
 ```bash
 # Activate environment
 conda activate iclr_analysis
 
-# 1. Scrape submissions from OpenReview (~30-60 minutes for large conferences)
-python src/scrape_iclr_submissions.py
+# STEP 1: Collect metadata from OpenReview (~30-60 minutes)
+# For past conference with decisions
+python src/scrape_iclr.py --year 2025 --output iclr_2025/iclr_2025_v1
 
-# 2. Extract ratings from metadata (<1 second)
-python src/extract_ratings_fast.py
+# For current conference without decisions
+python src/scrape_iclr.py --year 2026 --output iclr_2026/iclr_2026_v1 --no-decisions
 
-# 3. Generate visualizations
-python src/plot_rating_distribution.py    # Main distribution
-python src/plot_rating_by_area.py         # Per-area distributions
-python src/analyze_distributions.py       # Additional analyses
+# STEP 2: Extract ratings and decisions (<1 second)
+# Automatically detects if decisions are available
+python src/extract_ratings.py iclr_2025/iclr_2025_v1/submissions_metadata.json iclr_2025/iclr_2025_v1/ratings_data.csv
+
+# STEP 3: Generate visualizations and analysis
+python src/plot_rating_distribution.py iclr_2025/iclr_2025_v1/ratings_data.csv outputs/iclr_2025/
+python src/plot_rating_by_area.py iclr_2025/iclr_2025_v1/ratings_data.csv outputs/iclr_2025/
+python src/analyze_distributions.py iclr_2025/iclr_2025_v1/ratings_data.csv outputs/iclr_2025/
 ```
 
 ### One-Command Pipeline
 
 ```bash
-# Run complete analysis pipeline
-./run_all.sh
+# Run complete analysis pipeline (all 3 steps)
+./run_all.sh 2025             # ICLR 2025 with decisions
+./run_all.sh 2026 --no-decisions  # ICLR 2026 without decisions
 ```
 
 ## 📁 Project Structure
@@ -135,19 +164,34 @@ python src/analyze_distributions.py       # Additional analyses
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                       # Git exclusions
 ├── setup.sh                         # Environment setup script
-├── run_all.sh                       # Complete pipeline script
+├── run_all.sh                       # Complete pipeline script (legacy)
 │
 ├── src/                             # Source code
-│   ├── scrape_iclr_submissions.py   # Data collection from OpenReview
-│   ├── extract_ratings_fast.py      # Parse & structure ratings data
+│   ├── scrape_iclr.py               # ✨ Metadata collection (all years)
+│   ├── extract_ratings.py           # ✨ Extract ratings & decisions
 │   ├── plot_rating_distribution.py  # Main distribution visualization
 │   ├── plot_rating_by_area.py       # Area-specific plots
-│   └── analyze_distributions.py     # Additional distribution analyses
+│   ├── analyze_distributions.py     # Additional distribution analyses
+│   ├── test_decision_extraction.py  # Decision extraction tests
+│   └── deprecated/                  # Legacy year-specific scripts
 │
-├── outputs/                         # 🎨 Example visualizations (on GitHub)
-│   └── iclr_2026/                  # ICLR 2026 analysis results (26 plots)
-│       ├── average_rating_distribution.png
-│       ├── area_distribution.png
+├── docs/                            # Documentation
+│   ├── UNIVERSAL_SCRAPER_GUIDE.md   # Complete usage guide
+│   └── UNIVERSAL_SCRAPER_SUMMARY.md # Feature comparison
+│
+├── outputs/                         # 🎨 Visualizations
+│   ├── iclr_2026/                  # ICLR 2026 analysis (26 plots)
+│   └── iclr_2025/                  # ICLR 2025 demo plots (6 plots)
+│
+├── iclr_2026/                       # ICLR 2026 data
+│   └── iclr_2026_v1/               # Raw data & processed CSV
+│
+└── iclr_2025/                       # ICLR 2025 data
+    ├── iclr_2025_demo/             # Demo (10 samples)
+    ├── iclr_2025_v1/               # Full dataset (in progress)
+    ├── ICLR_2025_DEMO_SUMMARY.md   # Demo analysis summary
+    └── ICLR_2025_FULL_ANALYSIS_GUIDE.md  # Full analysis guide
+```
 │       ├── all_confidence_distribution.png
 │       ├── all_overall_ratings_distribution.png
 │       ├── avg_confidence_distribution.png
@@ -165,15 +209,53 @@ python src/analyze_distributions.py       # Additional analyses
 - Raw data files (26GB) are gitignored - run the scripts to generate them
 - New analyses will save data to `data/` and plots to `outputs/`
 
+## 🎯 Key Features
+
+### Universal Scraper
+- ✨ **One script for all years** - Past, current, and future conferences
+- 🎯 **Smart decision detection** - Automatically extracts Oral/Spotlight/Poster decisions
+- ⚡ **Same optimizations** - Batch processing, retry logic, incremental saves
+- 📊 **Flexible output** - Works with and without decision data
+
+### Decision Analysis (Past Conferences)
+- 🏆 **Accept (Oral)** - Top-tier oral presentations
+- ⭐ **Accept (Spotlight)** - Spotlight presentations
+- 📄 **Accept (Poster)** - Poster presentations
+- ❌ **Reject** - Rejected submissions
+- 🚫 **Desk Reject** - Desk rejected without review
+- ⬅️ **Withdrawn** - Author-withdrawn submissions
+
+### Rating Analysis (All Conferences)
+- 📈 **Comprehensive statistics** - Mean, median, variance, distributions
+- 🎨 **Publication-quality plots** - 300 DPI, color-coded gradients
+- 🔬 **Multi-dimensional analysis** - By area, decision type, confidence
+- 📊 **Acceptance rates** - Calculate thresholds and trends
+
 ## 🔧 Configuration
 
-### For Different Conferences
+### Universal Scraper (Recommended)
 
-To analyze a different conference, modify the `venue_id` in `src/scrape_iclr_submissions.py`:
+```bash
+# Past conference with decisions
+python src/scrape_iclr.py --year 2025 --output iclr_2025/iclr_2025_v1
+
+# Current conference without decisions  
+python src/scrape_iclr.py --year 2026 --output iclr_2026/v2 --no-decisions
+
+# Custom venue
+python src/scrape_iclr.py --venue "ICLR.cc/2024/Conference" --output iclr_2024
+```
+
+See [`docs/UNIVERSAL_SCRAPER_GUIDE.md`](./docs/UNIVERSAL_SCRAPER_GUIDE.md) for complete documentation.
+
+### Legacy Configuration
+
+For Different Conferences, modify the `venue_id` in conference-specific scrapers:
 
 ```python
 # Examples:
 venue_id = "ICLR.cc/2026/Conference"       # ICLR 2026
+venue_id = "ICLR.cc/2025/Conference"       # ICLR 2025  
 venue_id = "NeurIPS.cc/2024/Conference"    # NeurIPS 2024
 venue_id = "ICML.cc/2024/Conference"       # ICML 2024
 ```
@@ -191,6 +273,7 @@ venue_id = "ICML.cc/2024/Conference"       # ICML 2024
 
 Each submission includes:
 - **Metadata**: Title, abstract, keywords, primary area, submission date
+- **Decision**: Oral/Spotlight/Poster/Reject/Withdrawn (for past conferences)
 - **Ratings**: Overall (1-10), soundness, presentation, contribution
 - **Confidence**: Reviewer confidence levels (1-5)
 - **Review text**: Summary, strengths, weaknesses, questions
@@ -199,14 +282,16 @@ Each submission includes:
 ### Output Data Structure
 
 **ratings_data.csv** contains:
-- `submission_number`: Paper ID
+- `submission_id`: OpenReview submission ID
+- `submission_number`: Paper number
 - `primary_area`: Research area classification
+- **`decision`**: Detailed decision (Accept (Oral/Spotlight/Poster), Reject, Withdrawn, Pending)
+- **`decision_type`**: Simplified category (Accept, Reject, Withdrawn, Pending)
 - `num_reviews`: Number of reviews received
 - `ratings`: List of overall ratings
 - `confidences`: List of reviewer confidence scores
 - `soundness`, `presentation`, `contribution`: Dimension-specific ratings
-- `avg_rating`, `min_rating`, `max_rating`: Computed statistics
-- `avg_confidence`: Average reviewer confidence
+- `avg_rating`: Average of all ratings
 
 ## 🎨 Visualization Features
 

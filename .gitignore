@@ -45,6 +45,8 @@ data/
 
 # ICLR 2026 raw data folder (26GB - too large for GitHub)
 iclr_2026/
+iclr_2025/
+iclr_2024/
 
 # Output files (gitignored by default, except ICLR 2026 showcase)
 outputs/*.png
